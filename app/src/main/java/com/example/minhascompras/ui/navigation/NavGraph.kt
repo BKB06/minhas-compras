@@ -14,12 +14,10 @@ import com.example.minhascompras.ui.viewmodel.ShoppingViewModel
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object PurchaseDetail : Screen("purchase/{purchaseId}") {
-        fun createRoute(purchaseId: Long) = "purchase/
-$purchaseId"
+        fun createRoute(purchaseId: Long) = "purchase/$purchaseId"
     }
     object AddProduct : Screen("add_product/{purchaseId}") {
-        fun createRoute(purchaseId: Long) = "add_product/
-$purchaseId"
+        fun createRoute(purchaseId: Long) = "add_product/$purchaseId"
     }
 }
 

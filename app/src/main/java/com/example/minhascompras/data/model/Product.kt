@@ -22,11 +22,8 @@ data class Product(
     val id: Long = 0,
     val purchaseId: Long,
     val name: String,
-    val quantity: Int = 1,
+    val quantity: Double = 1.0,
     val unit: String = "un",
-    val unitPrice: Double = 0.0,
-    val totalPrice: Double = 0.0,
-    val category: String = "Outros",
-    val isInStock: Boolean = true,
-    val stockQuantity: Int = 0
+    val price: Double = 0.0,
+    val category: String? = null
 )

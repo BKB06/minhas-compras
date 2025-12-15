@@ -49,4 +49,36 @@ class ShoppingRepository(
 
     fun getProductsByCategory(category: String): Flow<List<Product>> =
         productDao.getProductsByCategory(category)
+    
+    // Controle de Validade
+    fun getExpiringProducts(dateThreshold: Long): Flow<List<Product>> =
+        productDao.getExpiringProducts(dateThreshold)
+    
+    fun getAllProductsWithExpiration(): Flow<List<Product>> =
+        productDao.getAllProductsWithExpiration()
+    
+    // Controle de Estoque
+    fun getProductHistory(productName: String): Flow<List<Product>> =
+        productDao.getProductHistory(productName)
+    
+    fun getProductsWithStock(): Flow<List<Product>> =
+        productDao.getProductsWithStock()
+    
+    suspend fun updateProductStock(productId: Long, newStock: Double, consumptionRate: Double?) {
+        val product = productDao.getProductById(productId)
+        product?.let {
+            val updatedProduct = it.copy(
+                currentStock = newStock,
+                averageConsumptionPerDay = consumptionRate ?: it.averageConsumptionPerDay,
+                lastStockUpdate = java.util.Date()
+            )
+            productDao.updateProduct(updatedProduct)
+        }
+    }
+    
+    suspend fun calculateAverageConsumption(productName: String): Double? {
+        // Esta função deve ser chamada de forma síncrona em uma corrotina
+        // Retorna null por enquanto, será calculada no ViewModel
+        return null
+    }
 }

@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(
     tableName = "products",
@@ -25,5 +26,11 @@ data class Product(
     val quantity: Double = 1.0,
     val unit: String = "un",
     val price: Double = 0.0,
-    val category: String? = null
+    val category: String? = null,
+    // Controle de Validade
+    val expirationDate: Date? = null,
+    // Controle de Estoque
+    val currentStock: Double? = null,
+    val averageConsumptionPerDay: Double? = null,
+    val lastStockUpdate: Date? = null
 )

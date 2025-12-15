@@ -35,4 +35,19 @@ interface ProductDao {
 
     @Query("SELECT * FROM products WHERE category = :category")
     fun getProductsByCategory(category: String): Flow<List<Product>>
+    
+    // Queries para controle de validade
+    @Query("SELECT * FROM products WHERE expirationDate IS NOT NULL AND expirationDate <= :dateThreshold ORDER BY expirationDate ASC")
+    fun getExpiringProducts(dateThreshold: Long): Flow<List<Product>>
+    
+    @Query("SELECT * FROM products WHERE expirationDate IS NOT NULL ORDER BY expirationDate ASC")
+    fun getAllProductsWithExpiration(): Flow<List<Product>>
+    
+    // Queries para histórico de produtos (para cálculo de consumo médio)
+    @Query("SELECT * FROM products WHERE name = :productName ORDER BY id ASC")
+    fun getProductHistory(productName: String): Flow<List<Product>>
+    
+    // Query para produtos com estoque baixo
+    @Query("SELECT * FROM products WHERE currentStock IS NOT NULL AND averageConsumptionPerDay IS NOT NULL ORDER BY currentStock ASC")
+    fun getProductsWithStock(): Flow<List<Product>>
 }

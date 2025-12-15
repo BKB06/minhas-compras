@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import com.example.minhascompras.data.model.Category
 import com.example.minhascompras.data.model.Product
 import com.example.minhascompras.ui.viewmodel.ShoppingViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +33,9 @@ fun AddProductScreen(
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var expandedCategory by remember { mutableStateOf(false) }
     var expandedUnit by remember { mutableStateOf(false) }
+    var expirationDate by remember { mutableStateOf<Date?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
 
     val units = listOf("un", "kg", "g", "L", "ml", "pct", "cx")
 
@@ -57,7 +63,8 @@ fun AddProductScreen(
                             price = price.replace(",", ".").toDoubleOrNull() ?: 0.0,
                             quantity = quantity.toDoubleOrNull() ?: 1.0,
                             unit = unit,
-                            category = selectedCategory
+                            category = selectedCategory,
+                            expirationDate = expirationDate
                         )
                         viewModel.addProduct(product) {
                             onBack()
@@ -168,6 +175,23 @@ fun AddProductScreen(
                 }
             }
 
+            // Campo de data de validade (opcional)
+            OutlinedTextField(
+                value = expirationDate?.let { 
+                    SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(it) 
+                } ?: "",
+                onValueChange = { },
+                label = { Text("Data de Validade (Opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Selecionar Data")
+                    }
+                },
+                placeholder = { Text("Nenhuma") }
+            )
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -189,6 +213,32 @@ fun AddProductScreen(
                     )
                 }
             }
+        }
+    }
+    
+    // DatePicker Dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            expirationDate = Date(it)
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

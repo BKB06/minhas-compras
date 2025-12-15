@@ -19,6 +19,9 @@ enum class StockStatus {
  */
 object StockHelper {
     
+    // Constante para período padrão de análise quando não há dados suficientes
+    private const val DEFAULT_ANALYSIS_PERIOD_DAYS = 30
+    
     /**
      * Calcula dias restantes de estoque
      * @param currentStock Estoque atual disponível
@@ -58,19 +61,11 @@ object StockHelper {
     fun calculateAverageConsumption(productHistory: List<Product>): Double? {
         if (productHistory.size < 2) return null
         
-        // Ordena por data de compra (através do purchaseId como proxy)
-        val sortedHistory = productHistory.sortedBy { it.id }
-        
         // Calcula total de quantidade comprada
-        val totalQuantity = sortedHistory.sumOf { it.quantity }
+        val totalQuantity = productHistory.sumOf { it.quantity }
         
-        // Pega a primeira e última compra para calcular período
-        val firstProduct = sortedHistory.first()
-        val lastProduct = sortedHistory.last()
-        
-        // Se tivermos datas de atualização de estoque, usamos elas
-        // Caso contrário, assumimos um período padrão
-        val daysBetween = 30 // Valor padrão se não houver mais informações
+        // Usa período padrão para estimativa quando não há datas específicas
+        val daysBetween = DEFAULT_ANALYSIS_PERIOD_DAYS
         
         return if (daysBetween > 0) {
             totalQuantity / daysBetween

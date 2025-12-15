@@ -188,7 +188,7 @@ fun ExpiringProductCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Validade: ${SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(product.expirationDate!!)}",
+                    text = "Validade: ${product.expirationDate?.let { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(it) } ?: "N/A"}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 DaysRemainingChip(days = daysUntilExpiration, label = "Validade")

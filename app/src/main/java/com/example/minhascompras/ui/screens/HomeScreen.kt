@@ -12,9 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.minhascompras.data.model.Purchase
+import com.example.minhascompras.ui.components.DashboardCard
 import com.example.minhascompras.ui.viewmodel.ShoppingViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -25,12 +27,20 @@ import java.util.*
 fun HomeScreen(
     viewModel: ShoppingViewModel,
     onPurchaseClick: (Long) -> Unit,
-    onNewPurchase: (Long) -> Unit
+    onNewPurchase: (Long) -> Unit,
+    onExpiringProductsClick: () -> Unit = {},
+    onStockManagementClick: () -> Unit = {}
 ) {
     val purchases by viewModel.allPurchases.collectAsState(initial = emptyList())
     val totalSpent by viewModel.totalSpent.collectAsState(initial = 0.0)
+    val expiringCount by viewModel.expiringCount.collectAsState()
+    val lowStockCount by viewModel.lowStockCount.collectAsState()
     var showNewPurchaseDialog by remember { mutableStateOf(false) }
     var storeName by remember { mutableStateOf("") }
+    
+    LaunchedEffect(Unit) {
+        viewModel.refreshDashboardData()
+    }
 
     Scaffold(
         topBar = {
@@ -78,6 +88,30 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+
+            // Cards de alertas - Validade e Estoque
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                DashboardCard(
+                    title = "Produtos Vencendo",
+                    count = expiringCount,
+                    color = if (expiringCount > 0) Color(0xFFFFA000) else Color(0xFF388E3C),
+                    onClick = onExpiringProductsClick,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                DashboardCard(
+                    title = "Estoque Baixo",
+                    count = lowStockCount,
+                    color = if (lowStockCount > 0) Color(0xFFFFA000) else Color(0xFF388E3C),
+                    onClick = onStockManagementClick,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             // Lista de compras

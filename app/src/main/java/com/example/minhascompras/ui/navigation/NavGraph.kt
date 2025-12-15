@@ -9,6 +9,8 @@ import androidx.navigation.navArgument
 import com.example.minhascompras.ui.screens.HomeScreen
 import com.example.minhascompras.ui.screens.PurchaseDetailScreen
 import com.example.minhascompras.ui.screens.AddProductScreen
+import com.example.minhascompras.ui.screens.ExpiringProductsScreen
+import com.example.minhascompras.ui.screens.StockManagementScreen
 import com.example.minhascompras.ui.viewmodel.ShoppingViewModel
 
 sealed class Screen(val route: String) {
@@ -19,6 +21,8 @@ sealed class Screen(val route: String) {
     object AddProduct : Screen("add_product/{purchaseId}") {
         fun createRoute(purchaseId: Long) = "add_product/$purchaseId"
     }
+    object ExpiringProducts : Screen("expiring_products")
+    object StockManagement : Screen("stock_management")
 }
 
 @Composable
@@ -38,6 +42,12 @@ fun NavGraph(
                 },
                 onNewPurchase = { purchaseId ->
                     navController.navigate(Screen.PurchaseDetail.createRoute(purchaseId))
+                },
+                onExpiringProductsClick = {
+                    navController.navigate(Screen.ExpiringProducts.route)
+                },
+                onStockManagementClick = {
+                    navController.navigate(Screen.StockManagement.route)
                 }
             )
         }
@@ -70,6 +80,26 @@ fun NavGraph(
                 purchaseId = purchaseId,
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable(Screen.ExpiringProducts.route) {
+            ExpiringProductsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onProductClick = { purchaseId ->
+                    navController.navigate(Screen.PurchaseDetail.createRoute(purchaseId))
+                }
+            )
+        }
+        
+        composable(Screen.StockManagement.route) {
+            StockManagementScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onProductClick = { purchaseId ->
+                    navController.navigate(Screen.PurchaseDetail.createRoute(purchaseId))
+                }
             )
         }
     }

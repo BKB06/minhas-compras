@@ -16,6 +16,20 @@ class ShoppingViewModel(private val repository: ShoppingRepository) : ViewModel(
 
     val allPurchases = repository.getAllPurchases()
     val totalSpent = repository.getTotalSpent()
+    
+    // Controle de Validade
+    private val _expiringProducts = MutableStateFlow<List<Product>>(emptyList())
+    val expiringProducts: StateFlow<List<Product>> = _expiringProducts.asStateFlow()
+    
+    private val _expiringCount = MutableStateFlow(0)
+    val expiringCount: StateFlow<Int> = _expiringCount.asStateFlow()
+    
+    // Controle de Estoque
+    private val _lowStockProducts = MutableStateFlow<List<Product>>(emptyList())
+    val lowStockProducts: StateFlow<List<Product>> = _lowStockProducts.asStateFlow()
+    
+    private val _lowStockCount = MutableStateFlow(0)
+    val lowStockCount: StateFlow<Int> = _lowStockCount.asStateFlow()
 
     private val _currentPurchase = MutableStateFlow<Purchase?>(null)
     val currentPurchase: StateFlow<Purchase?> = _currentPurchase.asStateFlow()
@@ -25,6 +39,46 @@ class ShoppingViewModel(private val repository: ShoppingRepository) : ViewModel(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    init {
+        // Carrega produtos próximos do vencimento (7 dias)
+        loadExpiringProducts()
+        // Carrega produtos com estoque baixo
+        loadLowStockProducts()
+    }
+    
+    private fun loadExpiringProducts() {
+        viewModelScope.launch {
+            val sevenDaysFromNow = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+            repository.getExpiringProducts(sevenDaysFromNow).collect { products ->
+                _expiringProducts.value = products
+                _expiringCount.value = products.size
+            }
+        }
+    }
+    
+    private fun loadLowStockProducts() {
+        viewModelScope.launch {
+            repository.getProductsWithStock().collect { products ->
+                val lowStock = products.filter { product ->
+                    val stock = product.currentStock ?: 0.0
+                    val consumption = product.averageConsumptionPerDay ?: 0.0
+                    if (consumption > 0) {
+                        (stock / consumption) < 7
+                    } else {
+                        false
+                    }
+                }
+                _lowStockProducts.value = lowStock
+                _lowStockCount.value = lowStock.size
+            }
+        }
+    }
+    
+    fun refreshDashboardData() {
+        loadExpiringProducts()
+        loadLowStockProducts()
+    }
 
     fun loadPurchase(purchaseId: Long) {
         viewModelScope.launch {
@@ -97,6 +151,20 @@ class ShoppingViewModel(private val repository: ShoppingRepository) : ViewModel(
     fun searchProducts(query: String) = repository.searchProducts(query)
 
     fun getAllProductNames() = repository.getAllProductNames()
+    
+    // Funções para controle de estoque
+    fun updateProductStock(productId: Long, newStock: Double, consumptionRate: Double? = null) {
+        viewModelScope.launch {
+            repository.updateProductStock(productId, newStock, consumptionRate)
+            refreshDashboardData()
+        }
+    }
+    
+    fun getProductHistory(productName: String) = repository.getProductHistory(productName)
+    
+    fun getAllProductsWithExpiration() = repository.getAllProductsWithExpiration()
+    
+    fun getProductsWithStock() = repository.getProductsWithStock()
 
     class Factory(private val repository: ShoppingRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
